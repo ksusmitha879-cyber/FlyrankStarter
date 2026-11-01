@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Which pages to refresh first: scoring content for next-window click decline</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+:root{--bg:#f5f7f8;--ink:#15212b;--mute:#52606b;--rule:#c9d2d9;--acc:#0b6e8a;--todo-bg:#fff1d6;--todo:#8a4b00}
+@media(prefers-color-scheme:dark){:root{--bg:#10171c;--ink:#e6edf1;--mute:#9aa9b4;--rule:#2b3841;--acc:#5cc3de;--todo-bg:#3a2a0c;--todo:#ffc46b}}
+*{box-sizing:border-box}html{scroll-padding-top:1rem}
+body{margin:0;background:var(--bg);color:var(--ink);font:1.08rem/1.7 "Source Serif 4",Georgia,serif}
+main{max-width:46rem;margin:0 auto;padding:3rem 1.25rem 5rem}
+h1{font:600 2.1rem/1.2 "IBM Plex Sans",system-ui,sans-serif;margin:0 0 .5rem}
+h2{font:600 1.3rem/1.3 "IBM Plex Sans",system-ui,sans-serif;margin:2.8rem 0 .6rem;padding-top:1rem;border-top:1px solid var(--rule)}
+.by{color:var(--mute);margin:0 0 2rem;font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:.95rem}
+a{color:var(--acc)}
+.todo{background:var(--todo-bg);color:var(--todo);padding:.05em .35em;border-radius:3px;font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:.9em}
+.tw{overflow-x:auto}table{border-collapse:collapse;min-width:100%;font:.95rem "IBM Plex Sans",system-ui,sans-serif}
+th,td{text-align:left;padding:.45rem .8rem;border-bottom:1px solid var(--rule)}
+figure{margin:1.5rem 0}img{max-width:100%;height:auto}figcaption{color:var(--mute);font-size:.9rem}
+abbr{text-decoration:none}:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+</style></head><body><main>
+<h1>Which pages to refresh first: scoring content for next-window click decline</h1>
+<p class="by"><span class="todo">karanam Susmitha</span> · Applied Search Intelligence capstone · <span class="todo">01-11-2026</span></p>
+
+<h2 id="abstract">Abstract</h2>
+<p>Content teams cannot refresh every page, so they need a defensible order for review. We ask which pages are most likely to lose at least <span class="todo">30%</span> of their clicks in the next <span class="todo">28</span> days. We build features from a trailing click, impression, and position window and label pages by their following window. We compare a logistic regression and a gradient-boosted model against a hand rule that ranks by recent click drop, on one client-held-out, newest-window split.<span class="todo">On held-out clients in the newest window, 77 of the logistic model’s top 100 pages declined by at least 30%, against 65 for the baseline rule and a 68.9% base rate across all pages tested.The result supports review prioritization; it does not show that refreshing a page changes its traffic.</span></p>
+
+<h2 id="introduction">Introduction and problem statement</h2>
+<p>The decision: given a fixed review budget of <var>K</var> pages per cycle, which pages go first? A useful ranking puts pages that will actually decline near the top. The baseline a team would use today is "largest recent drop first," so the model has to beat that on the same pages to be worth running.<span class="todo">A content team can review only a small share of its pages each cycle, so the order of review decides where effort goes. A ranking is only worth using if it beats the simple rule the team would use anyway. Here the simple rule did no better than chance in its top 100, so a more careful ranking is worth testing.</span></p>
+
+<h2 id="data">Data</h2>
+<p>Source: the FlyRank ML Internship warehouse release, <span class="todo">fact_content_daily_performance</span>, covering <span class="todo">11 February to 30 June 2026</span>. Page and client identifiers are anonymized; no URLs, titles, queries, or client names are used. We excluded page-windows with fewer than  <span class="todo">20</span> clicks in the trailing window  n removed of N, because ratios on near-zero counts are noise. <span class="todo">We excluded 111,955 of 870,954 page-windows because the client’s Search Console history did not cover the full feature window, and 733,452 of the remaining 758,999 because they had fewer than 20 clicks in the trailing window, leaving 25,547 page-windows from 30 clients. We did not use the 90-day query table, because its window overlaps the newest label period and would leak the outcome, and we used no GA4 columns.</span>.</p>
+
+<h2 id="methodology">Methodology</h2>
+<p><strong>Label.</strong> A page-window is positive if clicks in the next window are at least <span class="todo">30%</span> below clicks in the trailing window. This threshold and the window length are choices; section Limitations reports sensitivity to them.</p>
+<p><strong>Features.</strong> Recent clicks, prior-window clicks, impressions, average position, click momentum, and click-through rate, all computed only from dates on or before the cut. <span class="todo">No static features were used; all six features come from Search Console clicks, impressions, and position in the two trailing 28-day windows.</span>.</p>
+<p><strong>Baseline.</strong> Rank by largest relative click drop between the two trailing windows.</p>
+<p><strong>Validation.</strong> Five rolling origins. Training uses older origins and training clients; testing uses the newest origin and clients never seen in training. Rows are never split randomly, because the same page recurs across origins.</p>
+<p><strong>Leakage checks.</strong> Label windows begin strictly after the feature window; split is by client and time; each feature was tested alone and none exceeded.<span class="todo"> none exceeded 0.535 (average position; the range was 0.483 to 0.535). No feature leaks the label, and equally no single feature predicts it well.</span></p>
+
+<h2 id="results">Results</h2>
+<div class="tw"><table><thead><tr><th>Model</th><th>AUC</th><th>P@50</th><th>P@100</th><th>P@200</th></tr></thead><tbody>
+<tr><td>Hand-rule baseline</td><td><span class="todo">0.473</span></td><td><span class="todo">0.66</span></td><td><span class="todo">0.65</span></td><td><span class="todo">0.63</span></td></tr>
+<tr><td>Logistic regression</td><td><span class="todo">0.524</span></td><td><span class="todo">0.82</span></td><td><span class="todo">0.77</span></td><td><span class="todo">0.70</span></td></tr>
+<tr><td>Gradient boosting</td><td><span class="todo">0.528</span></td><td><span class="todo">0.78</span></td><td><span class="todo">0.76</span></td><td><span class="todo">0.72</span></td></tr>
+</tbody></table></div>
+<p>Test base rate:<span class="todo">68.9% </span> (1,952 test page-windows from 7 held-out clients). Bootstrap 95% interval for the P@100 gap, logistic regression minus baseline: <span class="todo"></span>[0.01, 0.24], median 0.12. The interval only just excludes zero, and it resamples pages rather than clients, so with seven test clients it understates the uncertainty; we treat the advantage as suggestive, not established. Overall ranking quality is close to chance (AUC 0.524 for logistic regression, 0.528 for gradient boosting), and at P@200 the logistic model (0.70) is level with the base rate.</p>
+<figure><img src="c:\Users\Dell\Pictures\Screenshot (358) - Copy.png" alt="Bar chart of Precision at K for baseline and models, with the base rate as a dashed line"><figcaption>Precision@K on the held-out clients and newest window. Dashed line is the base rate.</figcaption></figure>
+
+<h2 id="limitations">Limitations and honest framing</h2>
+<p>These are observed associations and a ranking that was measured on past data; they are decision support, not proof. Specifically: (1) the model predicts click decline, not whether a refresh would reverse it, so refresh impact is untested; (2) seasonality can look like decline, and <span class="todo">11 February to 30 June 2026</span>3 origins cannot separate the two; (3) results depend on the label threshold and window length — sensitivity at <span class="todo">at decline thresholds of 20%, 30%, and 40%, the logistic model’s P@100 was 0.90, 0.77, and 0.66 against baseline values of 0.74, 0.65, and 0.56, ahead at all three, though the window length was not varied from 28 days (4) the test set has <span class="todo">7</span> held-out clients, so intervals are wide. Nothing here is a claim about how Google's ranking works.  Pages were selected for having at least 20 clicks in the trailing window, which favors recent highs and likely raises the share that later decline. Several clients stopped reporting in the final days of the newest label window, which may inflate declines in the test cut</span></p>
+
+<h2 id="recommendations">Ranked recommendations</h2>
+<p>Review pages in score order. Each carries reason codes (the two features contributing most to its score) and an action. <p>Read this queue as a watch list, not a refresh list. The highest-scoring pages are mostly pages whose clicks recently rose, and the pattern in this analysis suggests they are the ones most likely to fall back. Pages with falling clicks are tagged "refresh review", pages with a recent surge are tagged "monitor: recent surge, may partly revert", and the rest are tagged "monitor". The momentum thresholds of ±0.3 are judgment calls, not tuned. Three of the ten pages below had no clicks in the prior window, so their momentum reflects new traffic rather than growth from an established base.</p>
+<div class="tw"><table><thead><tr><th>Rank</th><th>Page id</th><th>Score</th><th>Reason codes</th><th>Action</th></tr></thead><tbody>
+<tr><td>1</td><td>content_7f067d9b9ab7fc50</td><td>0.948</td><td>mom ↑, clk_recent ↑</td><td>monitor: recent surge, may partly revert</td></tr>
+<tr><td>2</td><td>content_2b6113ad8359196a</td><td>0.805</td><td>mom ↑, clk_recent ↑</td><td>monitor: recent surge, may partly revert</td></tr>
+<tr><td>3</td><td>content_71422d7e0c41c142</td><td>0.771</td><td>clk_recent ↑, ctr ↓</td><td>monitor: recent surge, may partly revert</td></tr>
+<tr><td>4</td><td>content_33d31496fca9665e</td><td>0.729</td><td>impr_past ↑, ctr ↑</td><td>monitor</td></tr>
+<tr><td>5</td><td>content_036a7b994ba532fa</td><td>0.682</td><td>impr_past ↑, clk_recent ↑</td><td>monitor: recent surge, may partly revert</td></tr>
+<tr><td>6</td><td>content_4b4337cd4e1a2ba3</td><td>0.673</td><td>mom ↑, clk_prior ↑</td><td>monitor: recent surge, may partly revert</td></tr>
+<tr><td>7</td><td>content_7671507196bc85c0</td><td>0.661</td><td>clk_recent ↑, clk_prior ↓</td><td>monitor: recent surge, may partly revert</td></tr>
+<tr><td>8</td><td>content_ae941d65b87a8306</td><td>0.660</td><td>clk_recent ↑, impr_past ↑</td><td>monitor: recent surge, may partly revert</td></tr>
+<tr><td>9</td><td>content_aeea385fa5ce044f</td><td>0.657</td><td>clk_recent ↑, clk_prior ↓</td><td>monitor: recent surge, may partly revert</td></tr>
+<tr><td>10</td><td>content_3e512b141dbab791</td><td>0.645</td><td>clk_recent ↑, clk_prior ↓</td><td>monitor: recent surge, may partly revert</td></tr>
+</tbody></table></div>.</p>
+
+<h2 id="reproducibility">Reproducibility</h2>
+<p>Notebook: <a href="https://github.com/ksusmitha879-cyber/FlyrankStarter/blob/main/work/notebooks/capstone.ipynb">work/notebooks/capstone.ipynb</a>. Repo: <a href="https://github.com/ksusmitha879-cyber/FlyrankStarter">ksusmitha879-cyber/FlyrankStarter</a>. Data access requires the gated Hugging Face release; random seed 0.</p>
+
+<h2 id="credit">Acknowledgments and data credit</h2>
+<p>Built on the FlyRank ML Internship dataset (<a href="https://flyrank.ai" target="_blank" rel="noopener">flyrank.ai</a>).</p>
+</main></body></html>
